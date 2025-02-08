@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inscription & Connexion</title>
+    <link rel="stylesheet" href="styles.css">
+    <style >/* Design général */
+body {
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(135deg, #1e3c72, #2a5298); /* Bleu foncé dégradé */
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0;
+}
+
+/* Boîte formulaire */
+.container {
+    background: rgba(255, 255, 255, 0.1); /* Transparent blanc */
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0px 10px 25px rgba(0, 0, 0, 0.3);
+    text-align: center;
+    width: 350px;
+    backdrop-filter: blur(10px); /* Effet verre */
+    animation: fadeIn 1s ease-in-out;
+}
+
+/* Animation fadeIn */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Titre */
+h2 {
+    margin-bottom: 20px;
+    color: white;
+}
+
+/* Inputs */
+input {
+    width: 100%;
+    padding: 12px;
+    margin: 10px 0;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    transition: 0.3s;
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+}
+
+input::placeholder {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+input:focus {
+    outline: none;
+    box-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
+}
+
+/* Bouton */
+button {
+    width: 100%;
+    padding: 12px;
+    background: linear-gradient(135deg, #ff9a9e, #fad0c4);
+    color: #222;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+button:hover {
+    background: linear-gradient(135deg, #ff758c, #ff7eb3);
+}
+
+/* Liens */
+p {
+    margin-top: 12px;
+    font-size: 14px;
+    color: white;
+}
+
+a {
+    color: #ff9a9e;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+/* Captcha */
+#captcha-question {
+    font-size: 16px;
+    font-weight: bold;
+    margin-top: 10px;
+    color: white;
+}
+
+/* Responsive */
+@media (max-width: 400px) {
+    .container {
+        width: 90%;
+    }
+}
+</style>
+</head>
+<body>
+    <div class="container">
+        <!-- Formulaire d'inscription -->
+        <form id="signup-form">
+            <h2>Inscription</h2>
+            <input type="text" id="fullname" placeholder="Nom complet" required>
+            <input type="email" id="email" placeholder="Email" required>
+            <input type="tel" id="phone" placeholder="Numéro de téléphone" required>
+            <input type="password" id="password" placeholder="Mot de passe" required>
+            <input type="text" id="invite-code" placeholder="Code d'invitation (optionnel)">
+
+            <!-- Recaptcha -->
+            <p id="captcha-question"></p>
+            <input type="text" id="captcha-answer" placeholder="Répondez ici" required>
+
+            <button type="submit">S'inscrire</button>
+            <p>Déjà un compte ? <a href="#" id="show-login">Se connecter</a></p>
+        </form>
+
+        <!-- Formulaire de connexion -->
+        <form id="login-form" style="display: none;">
+            <h2>Connexion</h2>
+            <input type="tel" id="login-phone" placeholder="Numéro de téléphone" required>
+            <input type="password" id="login-password" placeholder="Mot de passe" required>
+            <button type="submit">Se connecter</button>
+            <p><a href="#" id="forgot-password">Mot de passe oublié ?</a></p>
+        </form>
+
+        <!-- Formulaire de récupération de mot de passe -->
+        <form id="forgot-form" style="display: none;">
+            <h2>Mot de passe oublié</h2>
+            <input type="tel" id="reset-phone" placeholder="Numéro de téléphone" required>
+            <button type="submit">Vérifier</button>
+            <p id="reset-result"></p>
+        </form>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+<script >document.addEventListener("DOMContentLoaded", function () {
+    const signupForm = document.getElementById("signup-form");
+    const loginForm = document.getElementById("login-form");
+    const forgotForm = document.getElementById("forgot-form");
+
+    const showLoginLink = document.getElementById("show-login");
+    const forgotPasswordLink = document.getElementById("forgot-password");
+
+    showLoginLink.addEventListener("click", function () {
+        signupForm.style.display = "none";
+        loginForm.style.display = "block";
+    });
+
+    forgotPasswordLink.addEventListener("click", function () {
+        loginForm.style.display = "none";
+        forgotForm.style.display = "block";
+    });
+
+    // Fonction pour générer recaptcha simple
+    function generateCaptcha() {
+        let num1 = Math.floor(Math.random() * 10);
+        let num2 = Math.floor(Math.random() * 10);
+        let sum = num1 + num2;
+        document.getElementById("captcha-question").textContent = `Combien font ${num1} + ${num2} ?`;
+        return sum;
+    }
+
+    let captchaResult = generateCaptcha(); // Générer recaptcha au début
+
+    // Code d'invitation valide
+    const validInviteCode = "INVITE123";
+
+    // Enregistrement d'un utilisateur
+    signupForm.addEventListener("submit", function (event) {
+        event.preventDefault();
+
+        let fullname = document.getElementById("fullname").value;
+        let email = document.getElementById("email").value;
+        let phone = document.getElementById("phone").value;
+        let password = document.getElementById("password").value;
+        let inviteCode = document.getElementById("invite-code").value;
+        let captchaAnswer = document.getElementById("captcha-answer").value;
+
+        // Vérifier captcha
+        if (parseInt(captchaAnswer) !== captchaResult) {
+            alert("Captcha incorrect !");
+            captchaResult = generateCaptcha();
+            return;
+        }
+
+        let users = JSON.parse(localStorage.getItem("users")) || [];
+
+        // Vérifier si l'utilisateur existe déjà
+        let userExists = users.some(user => user.phone === phone || user.email === email);
+        if (userExists) {
+            alert("Ce numéro de téléphone ou email est déjà utilisé !");
+            return;
+        }
+
+        // Vérifier si un code d'invitation est requis
+        if (inviteCode !== "" && inviteCode !== validInviteCode) {
+            alert("Code d'invitation invalide !");
+            return;
+        }
+
+        // Ajouter un nouvel utilisateur
+        users.push({ fullname, email, phone, password, inviteCode });
+        localStorage.setItem("users", JSON.stringify(users));
+
+        alert("Inscription réussie !");
+        window.location.href = "login.html"; // Redirection vers la page de connexion
+    });
+
+    // Connexion utilisateur
+    loginForm.addEventListener("submit", function (event) {
+        event.preventDefault();
+
+        let phone = document.getElementById("login-phone").value;
+        let password = document.getElementById("login-password").value;
+
+        let users = JSON.parse(localStorage.getItem("users")) || [];
+
+        let user = users.find(user => user.phone === phone && user.password === password);
+        if (user) {
+            alert("Connexion réussie !");
+            window.location.href = "site.html"; // Redirection vers la page principale
+        } else {
+            alert("Numéro de téléphone ou mot de passe incorrect !");
+        }
+    });
+
+    // Récupération de mot de passe
+    forgotForm.addEventListener("submit", function (event) {
+        event.preventDefault();
+
+        let phone = document.getElementById("reset-phone").value;
+        let users = JSON.parse(localStorage.getItem("users")) || [];
+
+        let user = users.find(user => user.phone === phone);
+        if (user) {
+            document.getElementById("reset-result").innerText = "Votre mot de passe est : " + user.password;
+        } else {
+            document.getElementById("reset-result").innerText = "Numéro de téléphone non trouvé !";
+        }
+    });
+});
+ </script>
+</html>
