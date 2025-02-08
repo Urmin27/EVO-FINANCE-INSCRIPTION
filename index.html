@@ -116,7 +116,7 @@ a:hover {
         width: 90%;
     }
 }
-</style>
+ </style >
 </head>
 <body>
     <div class="container">
@@ -127,7 +127,9 @@ a:hover {
             <input type="email" id="email" placeholder="Email" required>
             <input type="tel" id="phone" placeholder="Numéro de téléphone" required>
             <input type="password" id="password" placeholder="Mot de passe" required>
-            <input type="text" id="invite-code" placeholder="Code d'invitation (optionnel)">
+            
+            <!-- Champ code d'invitation (CACHÉ - automatique) -->
+            <input type="hidden" id="invite-code">
 
             <!-- Recaptcha -->
             <p id="captcha-question"></p>
@@ -186,8 +188,9 @@ a:hover {
 
     let captchaResult = generateCaptcha(); // Générer recaptcha au début
 
-    // Code d'invitation valide
-    const validInviteCode = "INVITE123";
+    // Code d'invitation automatique
+    const defaultInviteCode = "INVITE123";
+    document.getElementById("invite-code").value = defaultInviteCode;
 
     // Enregistrement d'un utilisateur
     signupForm.addEventListener("submit", function (event) {
@@ -197,8 +200,8 @@ a:hover {
         let email = document.getElementById("email").value;
         let phone = document.getElementById("phone").value;
         let password = document.getElementById("password").value;
-        let inviteCode = document.getElementById("invite-code").value;
         let captchaAnswer = document.getElementById("captcha-answer").value;
+        let inviteCode = document.getElementById("invite-code").value; // Récupérer le code automatique
 
         // Vérifier captcha
         if (parseInt(captchaAnswer) !== captchaResult) {
@@ -213,12 +216,6 @@ a:hover {
         let userExists = users.some(user => user.phone === phone || user.email === email);
         if (userExists) {
             alert("Ce numéro de téléphone ou email est déjà utilisé !");
-            return;
-        }
-
-        // Vérifier si un code d'invitation est requis
-        if (inviteCode !== "" && inviteCode !== validInviteCode) {
-            alert("Code d'invitation invalide !");
             return;
         }
 
